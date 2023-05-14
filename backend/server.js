@@ -69,6 +69,18 @@ async function validateCsv(csvData) {
   return errors;
 }
 
+async function updateProducts(csvData) {
+  return Promise.all(
+      csvData.map(async product => {
+          const updatedProduct = await db.products.update(
+              { price: parseFloat(product.new_price) },
+              { where: { productCode: product.product_code } }
+          );
+          return updatedProduct;
+      })
+  );
+}
+
 app.post('/validate-csv', upload.single('file'), function (req, res) {
   let csvData;
   const csvFile = fs.createReadStream(req.file.path,'utf8');
@@ -77,6 +89,26 @@ app.post('/validate-csv', upload.single('file'), function (req, res) {
       csvData = Papa.parse(data, { header: true });
   });
   csvFile.on("end", async () => res.send(await validateCsv(csvData.data)));
+});
+
+app.post('/upload-csv', upload.single('file'), function (req, res) {
+  let csvData;
+  const csvFile = fs.createReadStream(req.file.path,'utf8');
+
+  csvFile.on("data", data => {
+      csvData = Papa.parse(data, { header: true });
+  });
+  csvFile.on("end", async () => {
+      const errors = await validateCsv(csvData.data);
+      if (errors.length > 0) {
+          res.status(422);
+          res.send(errors);
+          return;
+      }
+      
+      const updatedProducts = await updateProducts(csvData.data);
+      res.send(updatedProducts);
+  });
 });
 
 app.get('/', (req, res) => {
