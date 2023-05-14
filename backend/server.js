@@ -6,7 +6,7 @@ const csv = require('fast-csv');
 const upload = multer({ dest: 'tmp/' });
 
 const app = express()
-const port = 3000
+const port = 8080
 
 const db = require("./models");
 db.sequelize.sync();
