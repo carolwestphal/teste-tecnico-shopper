@@ -2,6 +2,7 @@ const fs = require('fs');
 const express = require('express')
 const multer = require('multer')
 const Papa = require('papaparse')
+const cors = require('cors')
 
 const upload = multer({ dest: 'tmp/' });
 
@@ -9,6 +10,7 @@ const app = express()
 const port = 8080
 
 app.use(express.json());
+app.use(cors());
 
 const db = require("./models");
 db.sequelize.sync();
