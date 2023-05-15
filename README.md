@@ -21,6 +21,7 @@ Then, start the backend using this command:
 
 ```
 cd backend
+npm install
 npm start
 ```
 
@@ -29,5 +30,6 @@ npm start
 To run the frontend, just run these commands:
 ```
 cd frontend
+npm install
 npm run dev
 ```
