@@ -8,6 +8,8 @@ const upload = multer({ dest: 'tmp/' });
 const app = express()
 const port = 8080
 
+app.use(express.json());
+
 const db = require("./models");
 db.sequelize.sync();
 
@@ -109,6 +111,11 @@ app.post('/upload-csv', upload.single('file'), function (req, res) {
       const updatedProducts = await updateProducts(csvData.data);
       res.send(updatedProducts);
   });
+});
+
+app.post('/create-product', async (req, res) => {
+  const newProduct = await db.products.create(req.body);
+  res.send(newProduct);
 });
 
 app.get('/', (req, res) => {
