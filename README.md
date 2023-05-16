@@ -9,16 +9,17 @@ To run this project, you'll need to have installed in your machine:
 
 # How to run
 
+## Database
+
+To start the database, run these commands from the root directory:
+```
+docker pull mysql:5.7
+docker run -p 3306:3306 --name=mysql -e MYSQL_ROOT_PASSWORD=admin -e MYSQL_USER=user -e MYSQL_PASSWORD=password -e MYSQL_DATABASE=products -v $pwd/database:/docker-entrypoint-initdb.d -d mysql:5.7
+```
+
 ## Backend
 
-To run the backend, first start a container for the database, running these commands:
-```
-docker pull mysql/mysql-server:5.7
-docker run -p 3306:3306 --name=mysql1 -e MYSQL_USER=user -e MYSQL_PASSWORD=password -e MYSQL_DATABASE=testdb -d mysql/mysql-server:5.7
-```
-
-Then, start the backend using this command:
-
+To start the backend, run these commands from the root directory:
 ```
 cd backend
 npm install
@@ -27,7 +28,7 @@ npm start
 
 ## Frontend
 
-To run the frontend, just run these commands:
+To start the frontend, run these commands from the root directory:
 ```
 cd frontend
 npm install
