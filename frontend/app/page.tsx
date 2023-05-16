@@ -3,13 +3,28 @@
 import axios from "axios";
 import { useState, useRef } from "react";
 
+interface ValidationError {
+  lineNumber: number;
+  errors: string;
+}
+
+interface Product {
+  code: number;
+  name: string;
+  cost_price: number;
+  sales_price: number;
+}
+
 export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [errors, changeErrors] = useState([]);
-  const [successMessage, changeSuccessMessage] = useState('');
+  const [updates, changeUpdates] = useState([]);
+  const [verifySuccess, changeVerifySuccess] = useState(false);
 
   function onFileInputChange() {
-    changeSuccessMessage('');
+    changeErrors([]);
+    changeUpdates([]);
+    changeVerifySuccess(false);
   }
 
   async function onVerifyFile() {
@@ -27,7 +42,7 @@ export default function Home() {
     changeErrors(response.data);
 
     if (response.data.length === 0) {
-      changeSuccessMessage('Arquivo pronto para envio!');
+      changeVerifySuccess(true);
     }
   }
 
@@ -49,8 +64,9 @@ export default function Home() {
 
     if (response.status !== 200) {
       changeErrors(response.data);
+    } else {
+      changeUpdates(response.data);
     }
-    changeSuccessMessage('Seu arquivo foi enviado com sucesso!');
   }
 
   return (
@@ -67,31 +83,96 @@ export default function Home() {
             onClick={onVerifyFile}
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
           >
-            Verificar
+            Validar
           </button>
 
           <button
             onClick={onSendFile}
             className="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
           >
-            Enviar
+            Atualizar
           </button>
         </div>
+
+        {verifySuccess && (
+          <div className="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+            Nenhum erro encontrado no arquivo!
+          </div>
+        )}
       </div>
 
       {errors.length > 0 && (
-        <div>
-          {errors.map((error: { lineNumber: number, errors: string }) => (
-            <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400">
-              Erro na linha {error.lineNumber}: {error.errors}
-            </div>
-          ))}
+        <div className="mt-4">
+          Erros encontrados no arquivo:
+          <table className="table-auto">
+            <thead className="bg-gray-800 text-white">
+              <tr>
+                <th className="w-8 text-left py-3 px-4 uppercase font-semibold text-sm">
+                  Linha
+                </th>
+                <th className="text-left py-3 px-4 uppercase font-semibold text-sm">
+                  Erro
+                </th>
+              </tr>
+            </thead>
+            <tbody className="text-gray-700">
+              {errors
+                .sort((firstError: ValidationError, secondError: ValidationError) => firstError.lineNumber - secondError.lineNumber)
+                .map((error: ValidationError, index) => (
+                  <tr key={index} className={index % 2 === 1 ? 'bg-gray-100' : undefined}>
+                    <td className="w-8 text-left py-3 px-4 uppercase font-semibold text-sm">
+                      {error.lineNumber}
+                    </td>
+                    <td className="text-left py-3 px-4 uppercase font-semibold text-sm">
+                      {error.errors}
+                    </td>
+                  </tr>
+                )
+              )}
+            </tbody>
+          </table>
         </div>
       )}
       
-      {successMessage && (
-        <div className="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400" role="alert">
-          {successMessage}
+      {updates.length > 0 && (
+        <div className="mt-4">
+          Atualizações feitas:
+          <table className="table-auto">
+            <thead className="bg-gray-800 text-white">
+              <tr>
+                <th className="w-8 text-left py-3 px-4 uppercase font-semibold text-sm">
+                  Produto
+                </th>
+                <th className="text-left py-3 px-4 uppercase font-semibold text-sm">
+                  Nome
+                </th>
+                <th className="w-40 text-left py-3 px-4 uppercase font-semibold text-sm">
+                  Preço de Custo
+                </th>
+                <th className="w-40 text-left py-3 px-4 uppercase font-semibold text-sm">
+                  Preço de Venda
+                </th>
+              </tr>
+            </thead>
+            <tbody className="text-gray-700">
+              {updates.map((update: Product, index) => (
+                <tr key={index} className={index % 2 === 1 ? 'bg-gray-100' : undefined}>
+                  <td className="w-8 text-left py-3 px-4 uppercase font-semibold text-sm">
+                    {update.code}
+                  </td>
+                  <td className="text-left py-3 px-4 uppercase font-semibold text-sm">
+                    {update.name}
+                  </td>
+                  <td className="w-40 text-left py-3 px-4 uppercase font-semibold text-sm">
+                    {update.cost_price}
+                  </td>
+                  <td className="w-40 text-left py-3 px-4 uppercase font-semibold text-sm">
+                    {update.sales_price}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </main>
