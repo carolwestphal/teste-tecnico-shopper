@@ -67,6 +67,15 @@ async function validateCsv(csvData) {
                 });
                 return;
             }
+
+            if (newPrice < productEntry.cost_price) {
+                errors.push({
+                    lineNumber: index + 1,
+                    data: product,
+                    errors: 'Valor de venda do produto não pode estar abaixo do valor de custo.'
+                });
+                return;
+            }
         })
     );
 
