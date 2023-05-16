@@ -21,7 +21,7 @@ async function validateCsv(csvData) {
         csvData.map(async (product, index) => {
             if ((!product.product_code)) {
                 errors.push({
-                    lineNumber: index + 1,
+                    lineNumber: index + 2,
                     data: product,
                     errors: 'Não contém product_code.'
                 });
@@ -30,7 +30,7 @@ async function validateCsv(csvData) {
 
             if ((!product.new_price)) {
                 errors.push({
-                    lineNumber: index + 1,
+                    lineNumber: index + 2,
                     data: product,
                     errors: 'Não contém new_price.'
                 });
@@ -41,7 +41,7 @@ async function validateCsv(csvData) {
 
             if (!newPrice) {
                 errors.push({
-                    lineNumber: index + 1,
+                    lineNumber: index + 2,
                     data: product,
                     errors: 'O preço não é um número válido.'
                 });
@@ -52,7 +52,7 @@ async function validateCsv(csvData) {
 
             if (!productEntry) {
                 errors.push({
-                    lineNumber: index + 1,
+                    lineNumber: index + 2,
                     data: product,
                     errors: `Produto #${product.product_code} não existe na base de dados.`
                 });
@@ -61,7 +61,7 @@ async function validateCsv(csvData) {
 
             if (Math.abs((newPrice / productEntry.sales_price) - 1) > 0.1) {
                 errors.push({
-                    lineNumber: index + 1,
+                    lineNumber: index + 2,
                     data: product,
                     errors: 'Alteração do valor está acima de 10%.'
                 });
@@ -70,7 +70,7 @@ async function validateCsv(csvData) {
 
             if (newPrice < productEntry.cost_price) {
                 errors.push({
-                    lineNumber: index + 1,
+                    lineNumber: index + 2,
                     data: product,
                     errors: 'Valor de venda do produto não pode estar abaixo do valor de custo.'
                 });
