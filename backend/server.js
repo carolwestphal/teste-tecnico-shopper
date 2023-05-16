@@ -43,9 +43,8 @@ async function validateCsv(csvData) {
                 errors.push({
                     lineNumber: index + 2,
                     data: product,
-                    errors: 'O preço não é um número válido.'
+                    errors: `O novo valor de venda do produto #${product.product_code} não é um número válido.`
                 });
-                return;
             }
 
             const productEntry = await db.products.findOne({ where: { code: product.product_code } });
@@ -63,18 +62,16 @@ async function validateCsv(csvData) {
                 errors.push({
                     lineNumber: index + 2,
                     data: product,
-                    errors: 'Alteração do valor está acima de 10%.'
+                    errors: `Alteração de valor de venda do produto #${product.product_code} é maior que 10%. Valor de venda atual: ${productEntry.sales_price}`
                 });
-                return;
             }
 
             if (newPrice < productEntry.cost_price) {
                 errors.push({
                     lineNumber: index + 2,
                     data: product,
-                    errors: 'Valor de venda do produto não pode estar abaixo do valor de custo.'
+                    errors: `Valor de venda do produto #${product.product_code} não pode estar abaixo do valor de custo. Valor de custo: ${productEntry.cost_price}`
                 });
-                return;
             }
 
             const packsContainingProduct = await db.packs.findAll({ where: { product_id: product.product_code } });
@@ -87,9 +84,8 @@ async function validateCsv(csvData) {
                     errors.push({
                         lineNumber: index + 2,
                         data: product,
-                        errors: `Os seguintes pacotes que contém o produto não possuem alteração de preço: ${packIds.join(', ')}.`
+                        errors: `Os seguintes pacotes que contém o produto #${product.product_code} não possuem alteração de preço: ${packIds.join(', ')}.`
                     });
-                    return;
                 }
             }
         })
@@ -101,11 +97,11 @@ async function validateCsv(csvData) {
 async function updateProducts(csvData) {
     return Promise.all(
         csvData.map(async product => {
-            const updatedProduct = await db.products.update(
-                { sales_price: parseFloat(product.new_price) },
+            const productEntry = await db.products.findOne(
                 { where: { code: product.product_code } }
             );
-            return updatedProduct;
+            productEntry.sales_price = parseFloat(product.new_price);
+            return productEntry;
         })
     );
 }
