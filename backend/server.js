@@ -76,6 +76,22 @@ async function validateCsv(csvData) {
                 });
                 return;
             }
+
+            const packsContainingProduct = await db.packs.findAll({ where: { product_id: product.product_code } });
+
+            if (packsContainingProduct.length > 0) {
+                const packsWithoutPriceChange = packsContainingProduct.filter(
+                    pack => !csvData.some(prod => prod.product_code === pack.pack_id))
+                if (packsWithoutPriceChange.length > 0) {
+                    const packIds = packsWithoutPriceChange.map(pack => pack.pack_id);
+                    errors.push({
+                        lineNumber: index + 2,
+                        data: product,
+                        errors: `Os seguintes pacotes que contém o produto não possuem alteração de preço: ${packIds.join(', ')}.`
+                    });
+                    return;
+                }
+            }
         })
     );
 
