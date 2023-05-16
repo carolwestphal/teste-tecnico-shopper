@@ -74,6 +74,7 @@ async function validateCsv(csvData) {
                 });
             }
 
+
             const packsContainingProduct = await db.packs.findAll({ where: { product_id: product.product_code } });
 
             if (packsContainingProduct.length > 0) {
@@ -84,8 +85,54 @@ async function validateCsv(csvData) {
                     errors.push({
                         lineNumber: index + 2,
                         data: product,
-                        errors: `Os seguintes pacotes que contém o produto #${product.product_code} não possuem alteração de preço: ${packIds.join(', ')}.`
+                        errors: `Os seguintes pacotes que contém o produto #${product.product_code} não possuem alteração de preço de venda: ${packIds.join(', ')}.`
                     });
+                }
+            }
+
+            const productsInPack = await db.packs.findAll({ where: { pack_id: product.product_code } });
+
+            if (productsInPack.length > 0) {
+                const changedProductsInPack = csvData.filter(
+                    prod => productsInPack.some(productInPack => productInPack.product_id.toString() === prod.product_code)
+                )
+                const productIds = productsInPack.map(productIP => productIP.product_id);
+
+                if (changedProductsInPack.length === 0) {
+                    errors.push({
+                        lineNumber: index + 2,
+                        data: product,
+                        errors: `Ao menos um dos produtos do pacote #${product.product_code} devem ter alteração de preço de venda. Produtos contidos no pacote: ${productIds.join(', ')}.`
+                    });
+                } else {
+                    let calculatedNewPackPrice = 0;
+
+                    changedProductsInPack.forEach(productInPack => {
+                        const productQuantity = productsInPack.find(prod => prod.product_id.toString() === productInPack.product_code).qty;
+                        calculatedNewPackPrice += parseFloat(productInPack.new_price) * productQuantity;
+                    });
+
+                    await Promise.all(productsInPack
+                        .filter(productInPack => !changedProductsInPack.some(prod => prod.product_code === productInPack.product_id.toString()))
+                        .map(async productInPack => {
+                            const productInPackEntry = await db.products.findOne({ where: { code: productInPack.product_id } });
+                            calculatedNewPackPrice += productInPackEntry.sales_price * productInPack.qty;
+                        })
+                    );
+
+                    if (isNaN(calculatedNewPackPrice)) {
+                        errors.push({
+                            lineNumber: index + 2,
+                            data: product,
+                            errors: `Existem erros nas alterações de preço de venda dos produtos contidos no pacote #${product.product_code}. Produtos contidos no pacote: ${productIds.join(', ')}.`
+                        });
+                    } else if (calculatedNewPackPrice !== newPrice) {
+                        errors.push({
+                            lineNumber: index + 2,
+                            data: product,
+                            errors: `A alteração de preço de venda do pacote #${product.product_code} não é proporcional a alteração de preço de venda dos produtos contidos nele. Alteração calculada: ${calculatedNewPackPrice.toFixed(2)}.`
+                        });
+                    }
                 }
             }
         })
