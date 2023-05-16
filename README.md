@@ -14,7 +14,7 @@ To run this project, you'll need to have installed in your machine:
 To start the database, run these commands from the root directory:
 ```
 docker pull mysql:5.7
-docker run -p 3306:3306 --name=mysql -e MYSQL_ROOT_PASSWORD=admin -e MYSQL_USER=user -e MYSQL_PASSWORD=password -e MYSQL_DATABASE=products -v $pwd/database:/docker-entrypoint-initdb.d -d mysql:5.7
+docker run -p 3306:3306 --name=mysql -e MYSQL_ROOT_PASSWORD=admin -e MYSQL_USER=user -e MYSQL_PASSWORD=password -e MYSQL_DATABASE=products -v $(pwd)/database:/docker-entrypoint-initdb.d -d mysql:5.7
 ```
 
 ## Backend
